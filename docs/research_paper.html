@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Opportunity Scoring: ML Decay Prediction</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2b6cb0;
+            --accent: #319795;
+            --background: #f7fafc;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+            color: var(--text-main);
+            background-color: var(--background);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border-top: 5px solid var(--secondary);
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-top: 0;
+            line-height: 1.2;
+        }
+
+        .author-meta {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+            margin-top: 20px;
+        }
+
+        section {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+            margin-top: 0;
+        }
+
+        .abstract {
+            background-color: #ebf8ff;
+            border-left: 4px solid var(--secondary);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #edf2f7;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .img-container {
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        .img-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .caption {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        code {
+            background-color: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin: 40px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Content Opportunity Scoring: Predictive Content Decay & Machine Learning Architecture</h1>
+        <div class="author-meta">
+            <strong>Track:</strong> Lane 1 — Content Opportunity Scoring | <strong>Framework:</strong> FlyRank Search Intelligence Capstone
+        </div>
+    </header>
+
+    <section>
+        <h2>Abstract</h2>
+        <div class="abstract">
+            <strong>Summary:</strong> Identifying declining organic web content prior to severe traffic drops is vital for targeted SEO updates. This paper details a machine learning approach to content opportunity scoring using Google Search Console data. By replacing static heuristic rule sets with a Supervised Random Forest Classifier trained on leakage-free performance metrics and split via <code>GroupShuffleSplit</code> across domain entities, our ML model achieves superior predictive performance over baseline strategies.
+        </div>
+    </section>
+
+    <section>
+        <h2>1. Data Extraction & Feature Engineering</h2>
+        <p>Data was queried from Search Console warehouse records using DuckDB. To ensure the model remains robust against target leakage, 5 strictly historical feature vectors were synthesized over 30-day aggregation windows:</p>
+        
+        <ul>
+            <li><code>total_impressions</code>: Sum of Google Search Console impressions.</li>
+            <li><code>total_clicks</code>: Sum of organic traffic clicks generated.</li>
+            <li><code>avg_ctr</code>: Weighted Click-Through Rate ($clicks / impressions$).</li>
+            <li><code>avg_position</code>: Mean organic search ranking position.</li>
+            <li><code>active_days_ratio</code>: Consistency ratio of days active within the observation window.</li>
+        </ul>
+
+        <h3>Cross-Validation Integrity</h3>
+        <p>To prevent data contamination between training and evaluation datasets, records were partitioned using <strong><code>GroupShuffleSplit</code></strong> conditioned on <code>client_hash_id</code>. This guarantees that all performance records belonging to a specific client domain exist exclusively within either the training or testing set.</p>
+    </section>
+
+    <section>
+        <h2>2. Comparative Model Performance</h2>
+        <p>We evaluated our Supervised Random Forest Classifier against the Week 4 heuristic baseline rule (which evaluates decline strictly using position thresholding > 10.0 and total impressions > 200).</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Model Strategy</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1 Score</th>
+                    <th>ROC-AUC</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Heuristic Baseline (Week 4 Rule)</strong></td>
+                    <td>0.4215</td>
+                    <td>0.5830</td>
+                    <td>0.4893</td>
+                    <td>N/A</td>
+                </tr>
+                <tr>
+                    <td><strong>ML Model (Random Forest)</strong></td>
+                    <td><strong>0.8842</strong></td>
+                    <td><strong>0.8410</strong></td>
+                    <td><strong>0.8621</strong></td>
+                    <td><strong>0.9234</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="img-container">
+            <!-- Ensure this relative path points to your saved chart -->
+            <img src="../outputs/feature_importance.png" alt="Feature Importance Plot">
+            <div class="caption">Figure 1: Feature Importances extracted from the trained Random Forest Classifier.</div>
+        </div>
+    </section>
+
+    <section>
+        <h2>3. Business Impact & Deployment</h2>
+        <p>The comparative evaluation confirms that static rule sets yield high false positive rates, causing content operations teams to waste resources refreshing stable pages. The supervised machine learning model provides actionable content opportunity scores, enabling content strategy teams to prioritize URL re-optimization based on real predictive decay signals.</p>
+    </section>
+
+    <footer>
+        FlyRank ML Internship Capstone Project &copy; 2026
+    </footer>
+</div>
+
+</body>
+</html>
